@@ -1,0 +1,74 @@
+global:
+  namespace: payments
+
+# PostgreSQL Database Config
+postgres:
+  enabled: true
+  image: postgres:15-alpine
+  dbName: ledger_db
+  user: postgres
+  password: postgrespassword
+  port: 5432
+  storage: 1Gi
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+# Ledger Service Config
+ledger:
+  replicaCount: 2
+  image:
+    repository: ledger
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  port: 8001
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+# Notification Service Config
+notification:
+  replicaCount: 2
+  image:
+    repository: notification
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  port: 8002
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+# Payment API (Gateway) Config
+paymentApi:
+  replicaCount: 2
+  image:
+    repository: payment-api
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  port: 8000
+  simulateFailure: false
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+# Ingress Routing Config
+ingress:
+  enabled: true
+  className: nginx
+  host: localhost

@@ -1,0 +1,62 @@
+networks:
+  payment-net:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: payment-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ledger_db
+    ports:
+      - "5432:5432"
+    networks:
+      - payment-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d ledger_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ledger:
+    build:
+      context: ./services/ledger
+      dockerfile: dockerfile
+    container_name: payment-ledger
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ledger_db
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - payment-net
+
+  notification:
+    build:
+      context: ./services/notification
+      dockerfile: dockerfile
+    container_name: payment-notification
+    ports:
+      - "8002:8002"
+    networks:
+      - payment-net
+
+  payment-api:
+    build:
+      context: ./services/payment-api
+      dockerfile: dockerfile
+    container_name: payment-api
+    environment:
+      - LEDGER_URL=http://ledger:8001
+      - NOTIFICATION_URL=http://notification:8002
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ledger
+      - notification
+    networks:
+      - payment-net
