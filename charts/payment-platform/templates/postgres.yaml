@@ -54,11 +54,11 @@ spec:
                 name: postgres-secret
           resources:
             {{- toYaml .Values.postgres.resources | nindent 14 }}
-          readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - pg_isready -U {{ .Values.postgres.user }} -d {{ .Values.postgres.dbName }}
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            readinessProbe:
+              exec:
+                command:
+                  - pg_isready
+                  - -h
+                  - localhost
+              initialDelaySeconds: 5
+              periodSeconds: 5
