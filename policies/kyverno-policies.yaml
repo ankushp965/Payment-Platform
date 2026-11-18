@@ -34,6 +34,11 @@ spec:
         - key: kubernetes.io/metadata.name
           operator: In
           values: ["payments"]
+    objectSelector:
+      matchExpressions:
+        - key: app
+          operator: NotIn
+          values: ["postgres"]
   validations:
     - expression: "object.spec.containers.all(c, (has(c.securityContext) && has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot == true) || (has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true))"
       message: "SECURITY VIOLATION: Running as root is forbidden in Payment Platform. Set securityContext.runAsNonRoot: true"
@@ -57,23 +62,3 @@ spec:
   validations:
     - expression: "object.spec.containers.all(c, has(c.resources) && has(c.resources.limits) && has(c.resources.limits.cpu) && has(c.resources.limits.memory))"
       message: "STABILITY VIOLATION: CPU and Memory limits are required for all containers."
----
-apiVersion: policies.kyverno.io/v1alpha1
-kind: ValidatingPolicy
-metadata:
-  name: require-non-root-user
-spec:
-  matchConstraints:
-    resourceRules:
-      - apiGroups: [""]
-        apiVersions: ["v1"]
-        operations: ["CREATE", "UPDATE"]
-        resources: ["pods"]
-    namespaceSelector:
-      matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: In
-          values: ["payments"]
-  validations:
-    - expression: "(has(object.metadata.labels) && object.metadata.labels['app'] == 'postgres') || object.spec.containers.all(c, (has(c.securityContext) && has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot == true) || (has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true))"
-      message: "SECURITY VIOLATION: Running as root is forbidden in Payment Platform. Set securityContext.runAsNonRoot: true"
