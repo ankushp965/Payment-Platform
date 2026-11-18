@@ -1,0 +1,62 @@
+name: DevSecOps CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-and-lint:
+    name: Lint, SAST & Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Security & Linting Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 bandit pip-audit
+
+      - name: Run Flake8 (Syntax & Style Check)
+        run: |
+          flake8 services/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 services/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run Bandit (Static Application Security Testing)
+        run: |
+          bandit -r services/ -ll -ii
+
+      - name: Run pip-audit (CVE Dependency Scanner)
+        run: |
+          pip-audit -r services/payment-api/requirements.txt
+          pip-audit -r services/ledger/requirements.txt
+          pip-audit -r services/notification/requirements.txt
+
+  build-and-scan:
+    name: Docker Build & Trivy Security Gate
+    needs: security-and-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Build payment-api Container Image
+        run: |
+          docker build -t payment-api:${{ github.sha }} services/payment-api
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'payment-api:${{ github.sha }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
