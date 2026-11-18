@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: payment-success-rate
+  namespace: {{ .Values.global.namespace }}
+spec:
+  metrics:
+    - name: payment-errors
+      interval: 10s
+      failureLimit: 2
+      successCondition: result[0] == 0
+      provider:
+        prometheus:
+          address: http://prometheus-server.monitoring.svc.cluster.local:80
+          query: |
+            sum(rate(http_requests_total{endpoint="/api/v1/payments",status="500"}[1m])) or vector(0)
