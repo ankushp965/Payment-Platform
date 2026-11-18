@@ -54,7 +54,7 @@ paymentApi:
     tag: "v1.0.0"
     pullPolicy: IfNotPresent
   port: 8000
-  simulateFailure: true
+  simulateFailure: false
   resources:
     request: 
       cpu: "100m"
