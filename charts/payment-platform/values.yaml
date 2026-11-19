@@ -5,8 +5,8 @@ postgres:
   enabled: true
   image: postgres:15-alpine
   dbName: ledger_db
-  username: postgres
-  password: postgres
+  user: postgres
+  password: postgrespassword
   port: 5432
   storage: 1Gi
   resources:
@@ -20,7 +20,7 @@ postgres:
 ledger:
   replicaCount: 2
   image:
-    repository: ledger
+    repository: 296191651992.dkr.ecr.ap-south-1.amazonaws.com/payment-platform/ledger
     tag: "v1.0.0"
     pullPolicy: IfNotPresent
   port: 8001
@@ -33,9 +33,9 @@ ledger:
       memory: "128Mi"
 
 notification:
-  replicaCount: 1
+  replicaCount: 2
   image:
-    repository: notification
+    repository: 296191651992.dkr.ecr.ap-south-1.amazonaws.com/payment-platform/notification
     tag: "v1.0.0"
     pullPolicy: IfNotPresent
   port: 8002
@@ -46,24 +46,24 @@ notification:
     limits:
       cpu: "200m"
       memory: "128Mi"
-  
+
 paymentApi:
-  replicaCount: 2
+  replicaCount: 4
   image:
-    repository: payment-api
+    repository: 296191651992.dkr.ecr.ap-south-1.amazonaws.com/payment-platform/payment-api
     tag: "v1.0.0"
     pullPolicy: IfNotPresent
   port: 8000
   simulateFailure: false
   resources:
-    requests: 
+    requests:
       cpu: "100m"
       memory: "128Mi"
     limits:
       cpu: "250m"
-      memory: "512Mi"
+      memory: "256Mi"
 
 ingress:
   enabled: true
-  className: "nginx"
-  host: localhost
+  className: alb # AWS Load Balancer Controller
+  host: ""
