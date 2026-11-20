@@ -59,7 +59,7 @@ spec:
                   name: postgres-secret
                   key: POSTGRES_DB
             - name: DATABASE_URL
-              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)"
+              value: "postgresql+psycopg2://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)"
           resources:
             {{- toYaml .Values.ledger.resources | nindent 14 }}
           livenessProbe:

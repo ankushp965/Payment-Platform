@@ -40,6 +40,10 @@ spec:
         - pause: { duration: 30s }
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
       labels:
         app: payment-api
         version: {{ .Values.paymentApi.image.tag | quote }}
