@@ -33,3 +33,10 @@ variable "instance_types" {
   type        = list(string)
   default     = ["c7i-flex.large"]
 } 
+
+variable "db_password" {
+  description = "PostgreSQL master password (set via TF_VAR_db_password)"
+  type        = string
+  sensitive   = true
+  default     = "change-me-in-prod"
+}
